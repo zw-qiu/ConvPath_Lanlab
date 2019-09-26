@@ -1,27 +1,31 @@
-
+### Getlabels
 
 ```
 import numpy as np
 from scipy import io
 from PIL import Image
 import glob
-for k in range(1,11):
-    temp = glob.glob('E:\\Jupyter-notebook\\ConvPath\\deeplearning_results\\382412-2_'+str(k)+'\\*')
-    numoffiles = len(temp)#9
+import os
+path = os.getcwd() #获取当前代码文件的路径 C:\Python\JupyterNotebook\ConPath\Deeplearning_results
+path_list = glob.glob(path+'\\382412-2*')#patch文件夹的个数：10个
+for k in range(1,len(path_list)+1):
+    temp = glob.glob(path+'\\382412-2_'+str(k)+'\\*')
+    numfiles = len(temp)#每个文件夹下的文件数
     #print(numoffiles)
     lines=[]
-    for i in range(numoffiles):
-        file = 'E:\\Jupyter-notebook\\ConvPath\\deeplearning_results\\382412-2_'+str(k)+'\\382412-2_'+str(k)+'_ROI_Image_Patch_' + str(i+1) + '.txt_results.txt'
-        f = open(file, 'rb')
-        for item in f.readlines():
-            lines.append(item)
+    for i in range(1,numfiles+1):
+        file = path+'\\382412-2_'+str(k)+'\\382412-2_'+str(k)+'_ROI_Image_Patch_' + str(i) + '.txt_results.txt'
+        f = open(file, 'rb')#以二进制格式打开一个文件用于只读。文件指针将会放在文件的开头。
+        for item in f.readlines():#将文件中的内容按换行符进行切分，全部放在列表中
+            lines.append(item)#单个文件夹中所有文件合成到一个列表中
     numlabel=len(lines)
     print(numlabel)
     listoflabel=[0]*numlabel
     for line in lines:
         line = str(line.decode('gb2312').encode('utf8'))
+        #b'.../ImagePatchInfo/382412-2_1_ROI_Image_Patch/ROI_382412-2_1_Patch_1.tif\t0.00058211\t0.743156\t0.256262\n'
         a = line.split("\\t")
-        for i in range(1,4):
+        for i in range(1,4):#提取三个概率比大小,取出最大值及索引
             if i==3:
                 a[i]=a[i].split("\\n")[0]
             a[i]=float(a[i])
@@ -30,46 +34,8 @@ for k in range(1,11):
             if a[i]==max_a:
                 break
         col1=a[0].split("Patch_")[1].split(".")[0]
-        col11=int(col1)
+        col11=int(col1)#int() 函数用于将一个字符串或数字转换为整型，图片索引
         listoflabel[col11-1]=i
-    io.savemat("E:\\Jupyter-notebook\\ConvPath\\deeplearning_results\\382412-2_" +str(k)+ ".mat", {'label': listoflabel}) 
-```
-
-
-
-```
-import numpy as np
-from scipy import io
-from PIL import Image
-import glob
-from shutil import copyfile
-
-def LoadInMat(path):
-        # the path should also including the name of the .mat file
-        File_Disp = io.loadmat(path)
-        # Establish an empty list to save the valid name of variables
-        NameOfVariable = []
-        for key in File_Disp.keys():
-            if key == '__globals__' or key == '__version__' or key == '__header__':
-                continue
-            else:
-                NameOfVariable.append(key)
-        MatData = {}
-        for t in range(len(NameOfVariable)):
-            MatData[NameOfVariable[t]] = File_Disp[NameOfVariable[t]].tolist()
-        MatData['Keys'] = NameOfVariable
-        return MatData
-    
-temp = glob.glob('E:\\Jupyter-notebook\\ConvPath\\train1\\*')
-numoffiles = len(temp)#9
-#print(numoffiles)
-lines=[]
-for i in range(numoffiles):
-    loadmat=LoadInMat(temp[i])
-    img=loadmat['img']
-    label=loadmat['label']
-    if label[0][0]==1:
-        for k in range(8):
-            copyfile(temp[i],temp[i].split('.mat')[0]+'_'+str(k)+'.mat')
+    io.savemat(path+"\\382412-2_" +str(k)+ ".mat", {'label': listoflabel}) 
 ```
 
